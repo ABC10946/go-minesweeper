@@ -1,6 +1,8 @@
 package minesweeperlogic
 
-import "math/rand"
+import (
+	"math/rand"
+)
 
 type Cell struct {
 	Open  bool
@@ -143,5 +145,35 @@ func (ms *MineSweeper) IsGameClear() {
 	}
 	if openedCellCount == emptyCellCount {
 		ms.GameClear = true
+	}
+}
+
+// カウント0のセルを見つけたとき、周囲に0のセルがあったらそれも掘り出す
+func (ms *MineSweeper) DigEmpty(x, y int) {
+	neighborIdx := [][]int{
+		{-1, -1},
+		{0, -1},
+		{1, -1},
+		{-1, 0},
+		{1, 0},
+		{-1, 1},
+		{0, 1},
+		{1, 1},
+	}
+
+	for i := 0; i < 8; i++ {
+		xshift := neighborIdx[i][0]
+		yshift := neighborIdx[i][1]
+		neighborCellX := x + xshift
+		neighborCellY := y + yshift
+
+		if !ms.isOverWall(neighborCellX, neighborCellY) {
+			if !ms.Field[neighborCellY][neighborCellX].Open {
+				ms.Field[neighborCellY][neighborCellX].Open = true
+				if ms.Field[neighborCellY][neighborCellX].Count == 0 {
+					ms.DigEmpty(neighborCellX, neighborCellY)
+				}
+			}
+		}
 	}
 }

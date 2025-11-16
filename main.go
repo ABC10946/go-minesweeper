@@ -52,6 +52,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 					g.drawRectAngle(screen, i*size, j*size, float32(size), color.RGBA{0x00, 0xff, 0x00, 0xff})
 					g.drawLineRectAngle(screen, i*size, j*size, float32(size), color.White, 1)
 					g.ms.Open(i, j)
+					if g.ms.Field[j][i].Count == 0 {
+						g.ms.DigEmpty(i, j)
+					}
 				} else if flagPressed {
 					g.drawRectAngle(screen, i*size, j*size, float32(size), color.RGBA{0xff, 0xff, 0x00, 0xff})
 					g.drawLineRectAngle(screen, i*size, j*size, float32(size), color.White, 1)
@@ -76,7 +79,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 					g.drawLineRectAngle(screen, i*size, j*size, float32(size), color.White, 1)
 				} else {
 					g.drawLineRectAngle(screen, i*size, j*size, float32(size), color.White, 1)
-
 				}
 			}
 
@@ -144,10 +146,10 @@ func (g *Game) drawLineRectAngle(screen *ebiten.Image, x, y int, size float32, c
 
 func main() {
 	ebiten.SetWindowSize(1280, 1280)
-	ebiten.SetWindowTitle("Hello world!")
+	ebiten.SetWindowTitle("MINESWEEPER")
 	game := Game{}
-	game.cellSize = 32
-	game.ms.Init(10, 10)
+	game.cellSize = 16
+	game.ms.Init(20, 20)
 	game.ms.SummonBomb()
 	game.ms.CountBomb()
 	fmt.Println(game.ms.Field)
