@@ -1,15 +1,18 @@
 package main
 
 import (
+	"fmt"
 	"image/color"
 	"log"
 
+	"github.com/ABC10946/minesweeper/minesweeperlogic"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-type Game struct{}
+type Game struct {
+	ms minesweeperlogic.MineSweeper
+}
 
 func (g *Game) Update() error {
 	return nil
@@ -19,23 +22,27 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	x, y := ebiten.CursorPosition()
 	mousePressed := ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft)
 
-	ebitenutil.DebugPrint(screen, "Hello, World!")
-
 	size := 16
-	for i := 0; i < 16; i++ {
-		for j := 0; j < 16; j++ {
+	for i := 0; i < g.ms.FieldHeight; i++ {
+		for j := 0; j < g.ms.FieldWidth; j++ {
+
 			if i*size < x && x < (i+1)*size && j*size < y && y < (j+1)*size {
 				if mousePressed {
 					g.drawRectAngle(screen, i*size, j*size, float32(size), color.RGBA{0x00, 0xff, 0x00, 0xff})
 					g.drawLineRectAngle(screen, i*size, j*size, float32(size), color.Black, 1)
 
 				} else {
-					g.drawRectAngle(screen, i*size, j*size, float32(size), color.RGBA{0xff, 0x00, 0x00, 0xff})
+					g.drawRectAngle(screen, i*size, j*size, float32(size), color.RGBA{0xff, 0xff, 0x00, 0xff})
 					g.drawLineRectAngle(screen, i*size, j*size, float32(size), color.Black, 1)
 				}
 			} else {
-				g.drawRectAngle(screen, i*size, j*size, float32(size), color.White)
-				g.drawLineRectAngle(screen, i*size, j*size, float32(size), color.Black, 1)
+				if g.ms.Field[j][i].Bomb {
+					g.drawRectAngle(screen, i*size, j*size, float32(size), color.RGBA{0xff, 0x00, 0x00, 0xff})
+
+				} else {
+					g.drawRectAngle(screen, i*size, j*size, float32(size), color.White)
+					g.drawLineRectAngle(screen, i*size, j*size, float32(size), color.Black, 1)
+				}
 			}
 		}
 	}
@@ -89,9 +96,13 @@ func (g *Game) drawLineRectAngle(screen *ebiten.Image, x, y int, size float32, c
 }
 
 func main() {
-	ebiten.SetWindowSize(640, 480)
+	ebiten.SetWindowSize(640, 640)
 	ebiten.SetWindowTitle("Hello world!")
-	if err := ebiten.RunGame(&Game{}); err != nil {
+	game := Game{}
+	game.ms.Init(20, 20)
+	game.ms.SummonBomb()
+	fmt.Println(game.ms.Field)
+	if err := ebiten.RunGame(&game); err != nil {
 		log.Fatal(err)
 	}
 }
