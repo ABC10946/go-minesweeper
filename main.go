@@ -16,15 +16,28 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
+	x, y := ebiten.CursorPosition()
+	mousePressed := ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft)
+
 	ebitenutil.DebugPrint(screen, "Hello, World!")
+
 	size := 16
 	for i := 0; i < 16; i++ {
 		for j := 0; j < 16; j++ {
-			g.drawRectAngle(screen, i*size, j*size, float32(size), color.White)
-			g.drawLineRectAngle(screen, i*size, j*size, float32(size), color.Black, 1)
+			if i*size < x && x < (i+1)*size && j*size < y && y < (j+1)*size {
+				if mousePressed {
+					g.drawRectAngle(screen, i*size, j*size, float32(size), color.RGBA{0x00, 0xff, 0x00, 0xff})
+					g.drawLineRectAngle(screen, i*size, j*size, float32(size), color.Black, 1)
 
+				} else {
+					g.drawRectAngle(screen, i*size, j*size, float32(size), color.RGBA{0xff, 0x00, 0x00, 0xff})
+					g.drawLineRectAngle(screen, i*size, j*size, float32(size), color.Black, 1)
+				}
+			} else {
+				g.drawRectAngle(screen, i*size, j*size, float32(size), color.White)
+				g.drawLineRectAngle(screen, i*size, j*size, float32(size), color.Black, 1)
+			}
 		}
-
 	}
 }
 
