@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"image/color"
 	"log"
 	"strconv"
@@ -31,13 +30,17 @@ func init() {
 }
 
 type Game struct {
-	cellSize int
-	ms       minesweeperlogic.MineSweeper
+	cellSize    int
+	selectCount int
+	previousX   int
+	previousY   int
+	ms          minesweeperlogic.MineSweeper
 }
 
 func (g *Game) Update() error {
 	x, y := ebiten.CursorPosition()
 	flagPressed := inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight)
+	mousePressed := inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft)
 	size := g.cellSize
 
 	for i := 0; i < g.ms.FieldHeight; i++ {
@@ -45,6 +48,14 @@ func (g *Game) Update() error {
 			if j*size < x && x < (j+1)*size && i*size < y && y < (i+1)*size {
 				if flagPressed {
 					g.ms.Flag(j, i)
+				} else if mousePressed {
+					g.previousX = j
+					g.previousY = i
+					g.ms.Open(j, i)
+					g.selectCount++
+					if g.ms.Field[i][j].Count == 0 {
+						g.ms.DigEmpty(j, i)
+					}
 				}
 			}
 		}
@@ -59,7 +70,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	flagPressed := ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight)
 
 	size := g.cellSize
-	fmt.Println(g.ms.FieldHeight, g.ms.FieldWidth)
 
 	for i := 0; i < g.ms.FieldHeight; i++ {
 		for j := 0; j < g.ms.FieldWidth; j++ {
@@ -68,10 +78,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 				if mousePressed {
 					g.drawRectAngle(screen, j*size, i*size, float32(size), color.RGBA{0x00, 0xff, 0x00, 0xff})
 					g.drawLineRectAngle(screen, j*size, i*size, float32(size), color.White, 1)
-					g.ms.Open(j, i)
-					if g.ms.Field[i][j].Count == 0 {
-						g.ms.DigEmpty(j, i)
-					}
 				} else if flagPressed {
 					g.drawRectAngle(screen, j*size, i*size, float32(size), color.RGBA{0xff, 0xff, 0x00, 0xff})
 					g.drawLineRectAngle(screen, j*size, i*size, float32(size), color.White, 1)
@@ -90,7 +96,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 						g.drawRectAngle(screen, j*size, i*size, float32(size), color.Black)
 						g.drawLineRectAngle(screen, j*size, i*size, float32(size), color.White, 1)
 					}
-					g.drawText(screen, strconv.Itoa(g.ms.Field[i][j].Count), j*size, i*size, float64(g.cellSize), color.White)
+					g.drawText(screen, strconv.Itoa(g.ms.Field[i][j].Count), j*size, i*size, float64(g.cellSize/2), color.White)
 					// ebitenutil.DebugPrintAt(screen, strconv.Itoa(g.ms.Field[i][j].Count), j*size, i*size)
 				} else if g.ms.Field[i][j].Flag {
 					g.drawRectAngle(screen, j*size, i*size, float32(size), color.RGBA{0xff, 0xff, 0x00, 0xff})
@@ -108,6 +114,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	if g.ms.GameOver {
 		g.drawText(screen, "Game Over!", 0, 0, 30, color.White)
 		g.ms.AllOpen()
+		if g.selectCount == 1 {
+			g.ms.Init(g.ms.FieldWidth, g.ms.FieldHeight)
+			g.ms.SummonBomb()
+			g.ms.CountBomb()
+			g.selectCount = 0
+		}
 	}
 
 	if g.ms.GameClear {
@@ -175,9 +187,9 @@ func (g *Game) drawLineRectAngle(screen *ebiten.Image, x, y int, size float32, c
 
 func main() {
 	game := Game{}
-	game.cellSize = 20
-	width := 50
-	height := 50
+	game.cellSize = 70
+	width := 10
+	height := 20
 	game.ms.Init(width, height)
 	game.ms.SummonBomb()
 	game.ms.CountBomb()

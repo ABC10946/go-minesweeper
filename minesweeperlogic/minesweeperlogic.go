@@ -26,6 +26,10 @@ func (ms *MineSweeper) Init(fieldWidth int, fieldHeight int) {
 	ms.FieldWidth = fieldWidth
 	ms.FieldHeight = fieldHeight
 
+	ms.GameOver = false
+	ms.TotalBomb = 0
+	ms.GameClear = false
+
 	for i := 0; i < fieldHeight; i++ {
 		field = append(field, make([]Cell, fieldWidth))
 	}
@@ -38,15 +42,18 @@ func (ms *MineSweeper) SummonBomb() {
 		log.Fatal("Error: field is empty")
 	}
 
+	tempField := ms.Field
+
 	for i := 0; i < ms.FieldHeight; i++ {
 		for j := 0; j < ms.FieldWidth; j++ {
 			if rand.NormFloat64() > 0.9 {
-				ms.Field[i][j].Bomb = true
+				tempField[i][j].Bomb = true
 				totalBomb++
 			}
 		}
 	}
 
+	ms.Field = tempField
 	ms.TotalBomb = totalBomb
 }
 
