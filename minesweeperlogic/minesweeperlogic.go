@@ -40,7 +40,7 @@ func (ms *MineSweeper) SummonBomb() {
 	for i := 0; i < ms.FieldHeight; i++ {
 		for j := 0; j < ms.FieldWidth; j++ {
 			if rand.NormFloat64() > 0.9 {
-				ms.Field[j][i].Bomb = true
+				ms.Field[i][j].Bomb = true
 				totalBomb++
 			}
 		}
@@ -87,7 +87,7 @@ func (ms *MineSweeper) cellCountBomb(x, y int) int {
 func (ms *MineSweeper) CountBomb() {
 	for i := 0; i < ms.FieldHeight; i++ {
 		for j := 0; j < ms.FieldWidth; j++ {
-			ms.Field[j][i].Count = ms.cellCountBomb(i, j)
+			ms.Field[i][j].Count = ms.cellCountBomb(j, i)
 		}
 	}
 }
@@ -123,7 +123,7 @@ func (ms *MineSweeper) Open(x, y int) {
 func (ms *MineSweeper) AllOpen() {
 	for i := 0; i < ms.FieldHeight; i++ {
 		for j := 0; j < ms.FieldWidth; j++ {
-			ms.Field[j][i].Open = true
+			ms.Field[i][j].Open = true
 		}
 	}
 }
@@ -138,7 +138,7 @@ func (ms *MineSweeper) IsGameClear() {
 
 	for i := 0; i < ms.FieldHeight; i++ {
 		for j := 0; j < ms.FieldWidth; j++ {
-			if ms.Field[j][i].Open {
+			if ms.Field[i][j].Open {
 				openedCellCount++
 			}
 		}
