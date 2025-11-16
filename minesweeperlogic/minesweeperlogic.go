@@ -1,6 +1,7 @@
 package minesweeperlogic
 
 import (
+	"log"
 	"math/rand"
 )
 
@@ -34,7 +35,7 @@ func (ms *MineSweeper) Init(fieldWidth int, fieldHeight int) {
 func (ms *MineSweeper) SummonBomb() {
 	totalBomb := 0
 	if ms.Field == nil {
-		panic("Error: field is empty")
+		log.Fatal("Error: field is empty")
 	}
 
 	for i := 0; i < ms.FieldHeight; i++ {
