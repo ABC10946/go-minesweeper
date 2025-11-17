@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"image/color"
 	"log"
+	"os"
 	"strconv"
 
 	"github.com/ABC10946/minesweeper/minesweeperlogic"
@@ -29,7 +30,17 @@ func init() {
 
 }
 
+type WindowMode int
+
+const (
+	MenuWindow WindowMode = iota
+	GameWindow
+	Exit
+)
+
 type Game struct {
+	GameMode    WindowMode
+	GameSelect  WindowMode
 	CellSize    int
 	selectCount int
 	previousX   int
@@ -38,6 +49,39 @@ type Game struct {
 }
 
 func (g *Game) Update() error {
+	if g.GameMode == GameWindow {
+		g.gameModeUpdateProcess()
+	} else if g.GameMode == MenuWindow {
+		g.menuModeUpdateProcess()
+	} else if g.GameMode == Exit {
+		os.Exit(0)
+	}
+
+	return nil
+}
+
+func (g *Game) menuModeUpdateProcess() {
+	x, y := ebiten.CursorPosition()
+	mousePressed := inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft)
+	if 0 < x && x < 40*50 && 40 < y && y < 80 {
+		g.GameSelect = GameWindow
+	} else if 0 < x && x < 40*50 && 80 < y && y < 120 {
+		g.GameSelect = Exit
+	}
+
+	if mousePressed {
+		if g.GameSelect == GameWindow {
+			g.GameMode = GameWindow
+			g.MS.Init(g.MS.FieldWidth, g.MS.FieldHeight)
+			g.MS.SummonBomb()
+			g.MS.CountBomb()
+		} else if g.GameSelect == Exit {
+			g.GameMode = Exit
+		}
+	}
+}
+
+func (g *Game) gameModeUpdateProcess() {
 	x, y := ebiten.CursorPosition()
 	flagPressed := inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight)
 	mousePressed := inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft)
@@ -61,10 +105,9 @@ func (g *Game) Update() error {
 		}
 	}
 
-	return nil
 }
 
-func (g *Game) Draw(screen *ebiten.Image) {
+func (g *Game) gameModeDrawProcess(screen *ebiten.Image) {
 	x, y := ebiten.CursorPosition()
 	mousePressed := ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft)
 	flagPressed := ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight)
@@ -120,10 +163,32 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			g.MS.CountBomb()
 			g.selectCount = 0
 		}
+		g.GameMode = MenuWindow
 	}
 
 	if g.MS.GameClear {
 		g.drawText(screen, "Game Clear!", 0, 0, 30, color.White)
+		g.GameMode = MenuWindow
+	}
+}
+
+func (g *Game) menuDrawProcess(screen *ebiten.Image) {
+	g.drawText(screen, "MINESWEEPER", 40, 0, 40, color.White)
+	g.drawText(screen, "GameStart", 40, 40, 40, color.White)
+	g.drawText(screen, "EXIT", 40, 80, 40, color.White)
+
+	if g.GameSelect == GameWindow {
+		g.drawRectAngle(screen, 0, 40, 40, color.White)
+	} else if g.GameSelect == Exit {
+		g.drawRectAngle(screen, 0, 80, 40, color.White)
+	}
+}
+
+func (g *Game) Draw(screen *ebiten.Image) {
+	if g.GameMode == GameWindow {
+		g.gameModeDrawProcess(screen)
+	} else {
+		g.menuDrawProcess(screen)
 	}
 }
 

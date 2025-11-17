@@ -26,14 +26,16 @@ var rootCmd = &cobra.Command{
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
-		game := game.Game{}
-		game.CellSize = cell
-		game.MS.Init(width, height)
-		game.MS.SummonBomb()
-		game.MS.CountBomb()
-		ebiten.SetWindowSize(game.CellSize*width, game.CellSize*height)
+		game_ := game.Game{}
+		game_.CellSize = cell
+		game_.GameMode = game.MenuWindow
+
+		game_.MS.Init(width, height)
+		game_.MS.SummonBomb()
+		game_.MS.CountBomb()
+		ebiten.SetWindowSize(game_.CellSize*width, game_.CellSize*height)
 		ebiten.SetWindowTitle("MINESWEEPER")
-		if err := ebiten.RunGame(&game); err != nil {
+		if err := ebiten.RunGame(&game_); err != nil {
 			log.Fatal(err)
 		}
 
