@@ -35,6 +35,7 @@ type WindowMode int
 const (
 	MenuWindow WindowMode = iota
 	GameWindow
+	ResultWindow
 	Exit
 )
 
@@ -53,11 +54,39 @@ func (g *Game) Update() error {
 		g.gameModeUpdateProcess()
 	} else if g.GameMode == MenuWindow {
 		g.menuModeUpdateProcess()
+	} else if g.GameMode == ResultWindow {
+		g.resultModeUpdateProcess()
 	} else if g.GameMode == Exit {
 		os.Exit(0)
 	}
 
 	return nil
+}
+
+func (g *Game) resultModeUpdateProcess() {
+	x, y := ebiten.CursorPosition()
+	mousePressed := inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft)
+	if 0 < x && x < 40*50 && 40 < y && y < 80 {
+		g.GameSelect = GameWindow
+	} else if 0 < x && x < 40*50 && 80 < y && y < 120 {
+		g.GameSelect = MenuWindow
+	} else if 0 < x && x < 40*50 && 120 < y && y < 160 {
+		g.GameSelect = Exit
+	}
+
+	if mousePressed {
+		if g.GameSelect == GameWindow {
+			g.GameMode = GameWindow
+			g.MS.Init(g.MS.FieldWidth, g.MS.FieldHeight)
+			g.MS.SummonBomb()
+			g.MS.CountBomb()
+		} else if g.GameSelect == MenuWindow {
+			g.GameMode = MenuWindow
+		} else if g.GameSelect == Exit {
+			g.GameMode = Exit
+		}
+	}
+
 }
 
 func (g *Game) menuModeUpdateProcess() {
@@ -163,12 +192,12 @@ func (g *Game) gameModeDrawProcess(screen *ebiten.Image) {
 			g.MS.CountBomb()
 			g.selectCount = 0
 		}
-		g.GameMode = MenuWindow
+		g.GameMode = ResultWindow
 	}
 
 	if g.MS.GameClear {
 		g.drawText(screen, "Game Clear!", 0, 0, 30, color.White)
-		g.GameMode = MenuWindow
+		g.GameMode = ResultWindow
 	}
 }
 
@@ -184,9 +213,30 @@ func (g *Game) menuDrawProcess(screen *ebiten.Image) {
 	}
 }
 
+func (g *Game) resultDrawProcess(screen *ebiten.Image) {
+	if g.MS.GameOver {
+		g.drawText(screen, "GAME OVER", 40, 0, 40, color.RGBA{0xff, 0x00, 0x00, 0xff})
+	} else if g.MS.GameClear {
+		g.drawText(screen, "GAME CLEAR!!", 40, 0, 40, color.RGBA{0x00, 0xff, 0x00, 0xff})
+	}
+	g.drawText(screen, "Restart", 40, 40, 40, color.White)
+	g.drawText(screen, "Menu", 40, 80, 40, color.White)
+	g.drawText(screen, "EXIT", 40, 120, 40, color.White)
+
+	if g.GameSelect == GameWindow {
+		g.drawRectAngle(screen, 0, 40, 40, color.White)
+	} else if g.GameSelect == MenuWindow {
+		g.drawRectAngle(screen, 0, 80, 40, color.White)
+	} else if g.GameSelect == Exit {
+		g.drawRectAngle(screen, 0, 120, 40, color.White)
+	}
+}
+
 func (g *Game) Draw(screen *ebiten.Image) {
 	if g.GameMode == GameWindow {
 		g.gameModeDrawProcess(screen)
+	} else if g.GameMode == ResultWindow {
+		g.resultDrawProcess(screen)
 	} else {
 		g.menuDrawProcess(screen)
 	}
